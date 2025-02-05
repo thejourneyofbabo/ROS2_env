@@ -1,0 +1,3 @@
+[submodule "f1sim_ws"]
+	path = f1sim_ws
+	url = https://github.com/thejourneyofbabo/f1sim_ws.git
