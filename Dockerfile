@@ -22,75 +22,52 @@
 
 FROM ros:humble
 
-# Install dependencies first
+# Add ROS 2 APT repository
+RUN apt-get update && apt-get install -y curl && \
+    curl -sSL 'http://repo.ros2.org/repos.key' | apt-key add - && \
+    sh -c 'echo "deb http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list' && \
+    apt-get update
+
+# Base dependencies
 RUN apt-get update && apt-get install -y \
-   git \
-   nano \
-   vim \
-   python3-pip \
-   libeigen3-dev \
-   tmux \
-   ros-humble-rviz2 \
-   libclang-dev \
-   python3-vcstool \
-   zsh \
-   curl \
-   wget \
-   fonts-powerline \
+   git nano vim python3-pip libeigen3-dev tmux \
+   ros-humble-rviz2 libclang-dev python3-vcstool \
+   zsh curl wget fonts-powerline \
+   cmake ninja-build gettext unzip \
    && rm -rf /var/lib/apt/lists/*
 
-# Install Rust and Cargo
+# Neovim installation
+RUN git clone https://github.com/neovim/neovim && \
+   cd neovim && \
+   git checkout stable && \
+   make CMAKE_BUILD_TYPE=RelWithDebInfo && \
+   make install
+
+# NvChad setup
+RUN git clone https://github.com/NvChad/starter ~/.config/nvim
+
+# Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup default stable
 
-# Verify zsh installation and create symbolic link if needed
+# Setup zsh
 RUN which zsh || { ln -s $(which zsh) /bin/zsh; }
-
-# Install oh-my-zsh
 RUN sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || true
 
-# Setup zsh configuration
+# Config
 RUN echo "source /opt/ros/humble/setup.zsh" >> /root/.zshrc && \
    echo "export PATH=$PATH:/usr/bin/zsh:/root/.cargo/bin" >> /root/.zshrc && \
    echo 'source $HOME/.cargo/env' >> /root/.zshrc
 
-# Install Python dependencies
-RUN pip3 install transforms3d
-RUN pip3 install git+https://github.com/colcon/colcon-cargo.git && \
-   pip3 install git+https://github.com/colcon/colcon-ros-cargo.git
+# Dependencies
+RUN pip3 install transforms3d \
+   git+https://github.com/colcon/colcon-cargo.git \
+   git+https://github.com/colcon/colcon-ros-cargo.git
 
-# f1tenth gym
-RUN git clone https://github.com/f1tenth/f1tenth_gym
-RUN cd f1tenth_gym && \
-   pip3 install -e .
+# Set working directory
+WORKDIR /ros2_ws
 
-# Setup Rust ROS2
-RUN . $HOME/.cargo/env && \
-   mkdir -p /opt/ros/rust_ros2 && \
-   chmod 777 /opt/ros/rust_ros2 && \
-   cd /opt/ros/rust_ros2 && \
-   mkdir -p src && \
-   git clone https://github.com/ros2-rust/ros2_rust.git src/ros2_rust && \
-   cd src && \
-   vcs import . < ros2_rust/ros2_rust_humble.repos && \
-   cd .. && \
-   bash -c '. /opt/ros/humble/setup.bash && colcon build'
-
-# ros2 gym bridge
-RUN mkdir -p sim_ws/src/f1tenth_gym_ros
-COPY . /sim_ws/src/f1tenth_gym_ros
-RUN ["/bin/bash", "-c", "\
-   source /opt/ros/humble/setup.bash && \
-   cd sim_ws/ && \
-   apt-get update --fix-missing && \
-   rosdep install -i --from-path src --rosdistro humble -y && \
-   colcon build"]
-
-WORKDIR '/sim_ws'
-
-# Ensure zsh is properly set as the default shell
 SHELL ["/usr/bin/zsh", "-c"]
 ENV SHELL=/usr/bin/zsh
-
 ENTRYPOINT ["/usr/bin/zsh"]
