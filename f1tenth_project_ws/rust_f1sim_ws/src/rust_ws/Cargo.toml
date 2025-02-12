@@ -17,8 +17,8 @@ nav_msgs = "*"
 
 ## --- F1Tenth Lab Section --- ###
 [[bin]]
-name = "lab3_wall_follwing"
-path = "./src/lab_f1/lab3_wall_following.rs"
+name = "lab4_gap_following"
+path = "./src/lab_f1/lab4_gap_following.rs"
 
 
 ## --- F1Tenth Lab Section --- ###
