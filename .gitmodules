@@ -4,3 +4,6 @@
 [submodule "neovim"]
 	path = neovim
 	url = https://github.com/neovim/neovim
+[submodule "F1Tenth_MiRu_ws"]
+	path = F1Tenth_MiRu_ws
+	url = https://github.com/MiRuAE/F1Tenth_MiRu_ws.git

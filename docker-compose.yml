@@ -23,7 +23,7 @@
 version: '3'
 services:
   sim:
-    image: f1tenth_gym_ros
+    image: ROS2_env
     build: ./
     volumes: 
       - ./:/ros2_ws
