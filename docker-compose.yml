@@ -23,7 +23,7 @@
 version: '3'
 services:
   sim:
-    image: ROS2_env
+    image: ros2_env
     build: ./
     volumes: 
       - ./:/ros2_ws
